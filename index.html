@@ -845,7 +845,7 @@ const GEO_JSON={"type":"FeatureCollection","features":[{"type":"Feature","proper
 ;
 
 /* ================= 登录 ================= */
-function enterApp(){document.getElementById('app').style.display='block';setTimeout(function(){if(window.chart)window.chart.resize();},80);if(typeof netCheck==='function')netCheck();}
+function enterApp(){document.getElementById('app').style.display='block';setTimeout(function(){if(window.chart)window.chart.resize();},80);if(typeof netCheck==='function')netCheck();loadNews();}
 enterApp();
 
 /* ================= 导航 ================= */
@@ -2087,6 +2087,24 @@ function openDocModal(title,html){
 function openRefDoc(i){var x=(typeof NX_REF!=='undefined')?NX_REF[i]:null;if(!x)return;openDocModal((x.disp||x.cat||'参考')+'（'+(x.r||'')+'）', x.h);}
 function openBestDoc(i){var b=(typeof NX_BEST!=='undefined')?NX_BEST[i]:null;if(!b)return;openDocModal(b.cat+'（最佳样本：'+(b.r||'')+'）', b.h);}
 function closeDocModal(){var m=document.getElementById('docModal');if(m)m.style.display='none';}
+/* ================= 遴选动态（联网每日更新） ================= */
+function renderNews(d){
+  var c=document.getElementById('newsCard'); if(!c||!d)return;
+  var rows=(d.table||[]).map(function(r){
+    return '<tr><td><b>'+(r['地区']||'')+'</b></td><td>'+(r['依据文件']||'')+'</td><td>'+(r['关键节点']||'')+'</td><td>'+(r['分包']||'')+'</td><td>'+(r['来源']||'')+'</td></tr>';
+  }).join('');
+  c.innerHTML='<h3>'+ (d.title||'🆕 遴选动态速递') +'</h3>'+
+    '<p style="font-size:13px;line-height:1.7">'+ (d.summary||'') +'</p>'+
+    (rows?'<table style="width:100%;border-collapse:collapse;font-size:12.5px" border="1" cellpadding="6"><tr style="background:#f2f2f2"><th>地区</th><th>依据文件</th><th>关键节点</th><th>分包 / 规模</th><th>来源</th></tr>'+rows+'</table>':'')+
+    (d.files?'<p style="font-size:12.5px;color:var(--gray);margin-top:8px">'+d.files+'</p>':'')+
+    (d.actions?'<p style="font-size:13px;line-height:1.7;margin-top:6px">'+d.actions+'</p>':'')+
+    (d.source?'<p style="font-size:11px;color:#9aa5b8;margin-top:6px">'+d.source+'</p>':'');
+}
+function loadNews(){
+  try{
+    fetch('news.json?v='+Date.now()).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(d) renderNews(d); }).catch(function(){});
+  }catch(e){}
+}
 /* ================= 对标库 ================= */
 function initBest(){
   document.getElementById('bestReadme').textContent=NX_BEST_README;
@@ -4008,6 +4026,53 @@ function fwCleanPoints(req){
   }
   return merged.map(function(x){return x[0];});
 }
+
+/* 采分点拆分纯净度闸（v15·对齐本地工具 4.0 framework._sanitize_scoring_points · 2026-10-22） */
+var FW_PTS_JUNKY=/得\s*[\d.]+|不得分|综合评分|综合评定|依次递减|排名第一|第一名|基准值|每个项目得|进行评分|按公式|在[\d.]+[-—~至]\d*分之间评分|计算得分/;
+var FW_SHELL_EXTRA=/每个项目得|综合评定|基准值/;
+var FW_SUBJ_FRAG=/根据各参选机构|根据参选机构/;
+var FW_SCORE_SUFFIX=/情况在[\d.]|在[\d.]+[-—~至]\d*分之间评分|进行评分|综合评分|得\s*[\d.]+|按公式|依次递减|进行计算|，得|；得|。得|排名第一|第一名/;
+function fwPurifyPoint(s){
+  s=String(s==null?'':s).replace(/^[\s　]+|[\s　]+$/g,'');
+  if(!s)return null;
+  if(FW_PTS_JUNKY.test(s))return null;
+  if(FW_SHELL_EXTRA.test(s))return null;
+  if(FW_SUBJ_FRAG.test(s))return null;
+  var m=FW_SCORE_SUFFIX.exec(s);
+  if(m){
+    var pre=s.slice(0,m.index).replace(/^[\s　]+|[\s　]+$|[ 。，,；;：:（）()的等]/g,'');
+    if(pre&&!FW_PTS_JUNKY.test(pre)&&!FW_SHELL_EXTRA.test(pre)&&!FW_SUBJ_FRAG.test(pre))return pre;
+    return null;
+  }
+  return s;
+}
+function fwPurifyList(lst){
+  if(!lst)return [];
+  var out=[];
+  for(var i=0;i<lst.length;i++){
+    var p=lst[i];
+    if(p&&typeof p==='object'&&!Array.isArray(p)){
+      var t=fwPurifyPoint(String(p.t!=null?p.t:(p.title!=null?p.title:'')));
+      var sub=fwPurifyList(p.sub||p.children||[]);
+      if(t===null){ if(sub.length)out.push.apply(out,sub); continue; }
+      out.push({t:t,sub:sub});
+    }else{
+      var s=fwPurifyPoint(String(p));
+      if(s===null)continue;
+      if(s.indexOf('。')>=0||s.indexOf('．')>=0){
+        var frags=s.split(/[。．]/);
+        for(var k=0;k<frags.length;k++){
+          var f=fwPurifyPoint(frags[k].replace(/^[\s　]+|[\s　]+$/g,''));
+          if(f)out.push(f);
+        }
+        continue;
+      }
+      out.push(s);
+    }
+  }
+  return out;
+}
+
 function fwStripProofHead(ph){
   var prev=null;
   while(prev!==ph){
@@ -4427,9 +4492,9 @@ function daBuildDims(rows){
     else tree=daScoringPoints(r.dim||'',r.requirement||'');
     dims.push({
       name:r.dim||'', weight:r.weight, score:r.score, group:!!r.group,
-      points:fwCleanPoints(r.requirement||''),
-      sub_points_tree:tree,
-      sub_points:fwSubFlatLeaf(tree),
+      points:fwPurifyList(fwCleanPoints(r.requirement||'')),
+      sub_points_tree:fwPurifyList(tree),
+      sub_points:fwSubFlatLeaf(fwPurifyList(tree)),
       req_text:String(r.requirement||'').replace(/[ \t\u3000]+/g,' ').replace(/^[\s　]+|[\s　]+$/g,''),
       materials:fwProofsText(r)
     });
@@ -4572,7 +4637,7 @@ function daBuildMd(R){
   L.push('> 项目：'+(R.name||'农险遴选招标文件'));
   L.push('> 基准日期：'+daToday());
   L.push('> 分析依据：'+fnames);
-  L.push('> 生成工具：agri-bid-audit · 某产险农险遴选本地工具 v2.0（深度分析 L1–L7）\n');
+  L.push('> 生成工具：agri-bid-audit · 某产险农险遴选本地工具 v2.0（深度分析 L1–L7）[能力树v15·采分点拆分纯净度闸]\n');
   /* 一、资格文件清单（公告原文逐项对照）—— 与本地工具 framework.renderFramework 同构 */
   L.push('## 一、资格文件清单（公告原文逐项对照）');
   L.push('> 下表逐条列出本期招标公告「申请人资格要求」章节的**资格条件原文**（区间法整条收录，不截断），每条即一项强制资格门槛，须逐条响应。');
