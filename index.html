@@ -2119,16 +2119,30 @@ function initBest(){
     '<button class="btn" onclick="openBestDoc('+i+')">📖 看全文</button></div>'+
     (b.rel?'<div style="font-size:12px;color:#5a6478;margin:4px 0">🔗 '+b.rel+'</div>':'')+(b.note?'<div class="note">'+b.note+'</div>':'')+
     '<div class="docview" style="max-height:460px;overflow:auto">'+b.h+'</div></div>').join('');
-  const catRows=Object.entries(NX_CAT).map(([k,arr])=>
-    '<details data-refcat="'+k.replace(/^[0-9]+_/,'')+'" style="margin-bottom:8px"><summary style="cursor:pointer;font-weight:600;color:var(--navy);padding:6px 0">'+k+'（'+arr.length+'份）</summary>'+
-    '<table class="t"><tr><th style="width:60%">文件</th><th>大小</th></tr>'+arr.map(x=>'<tr><td>'+x.f+'</td><td>'+x.mb+' MB</td></tr>').join('')+'</table></details>').join('')+
-  '<div class="note">ℹ️ 11类"辽阳.docx"已按内容核实（文件内标注"来源：辽阳农险遴选标书"）在本台账显示为"辽宁-辽阳.docx"；07类"宁波.docx"内容无法确认属地，暂保留原名待人工核对。</div>';
+  const catArrMap={}; Object.entries(NX_CAT).forEach(([k,arr])=>{catArrMap[k.replace(/^[0-9]+_/,'')]=arr;});
+  const catRows=Object.entries(NX_CAT).map(([k,arr])=>{
+    const g=k.replace(/^[0-9]+_/,'');
+    const has=NX_REF_GROUPS[g]?NX_REF_GROUPS[g].length:0;
+    return '<details data-g="'+g+'" style="margin-bottom:8px"><summary style="cursor:pointer;font-weight:600;color:var(--navy);padding:6px 0">'+k+'（'+(has?has+'篇参考':arr.length+'份')+'）</summary>'+
+      '<div class="catreflist"></div></details>';
+  }).join('')+
+  '<div class="note">ℹ️ 点开类别即可直接阅读该类全部参考内容（与标书参考库同源、已脱敏）；无对应参考分组时显示文件清单。如需看完整参考库分组，可在展开后点"在参考库查看→"。</div>';
   document.getElementById('catList').innerHTML=catRows;
-  document.getElementById('catList').onclick=function(e){
-    var d=e.target.closest('details');if(!d)return;
-    var g=d.dataset&&d.dataset.refcat;if(!g)return;
-    if(gotoRefGroup(g))e.preventDefault();
-  };
+  document.getElementById('catList').querySelectorAll('details').forEach(function(dt){
+    dt.addEventListener('toggle',function(){
+      if(!dt.open||dt.dataset.loaded)return;
+      dt.dataset.loaded='1';
+      const g=dt.dataset.g, box=dt.querySelector('.catreflist');
+      if(NX_REF_GROUPS[g]){
+        box.innerHTML=NX_REF_GROUPS[g].map(function(i){return refCard(NX_REF[i],i);}).join('')+
+          '<div style="margin:8px 0"><button class="btn" onclick="gotoRefGroup(\''+g+'\')">在参考库查看全部分组 →</button></div>';
+        enhanceCardTocs(box);
+      }else{
+        const arr=catArrMap[g]||[];
+        box.innerHTML='<table class="t"><tr><th style="width:60%">文件</th><th>大小</th></tr>'+arr.map(function(x){return '<tr><td>'+x.f+'</td><td>'+x.mb+' MB</td></tr>';}).join('')+'</table>';
+      }
+    });
+  });
   document.getElementById('catCount').textContent=Object.values(NX_CAT).reduce((a,b)=>a+b.length,0);
   buildBestToc();
   enhanceCardTocs(document.getElementById('bestList'));
