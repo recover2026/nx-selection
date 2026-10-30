@@ -1,6 +1,6 @@
 // 遴选应标支持库 · Service Worker
 // 策略：缓存优先（重复访问秒开）+ 后台静默更新（stale-while-revalidate）；完全离线时回退首页。
-const CACHE = 'nx-sel-v5';
+const CACHE = 'nx-sel-v6';
 self.addEventListener('install', function () { self.skipWaiting(); });
 self.addEventListener('activate', function (e) {
   e.waitUntil((function () {

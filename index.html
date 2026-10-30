@@ -271,6 +271,7 @@ header.topbar h1{font-size:15px;letter-spacing:.5px}}
   <div class="grp">■ 公告分析</div>
   <a class="nav on" data-s="s1"><span class="ico">🗺️</span>分析地图（五大区）</a>
   <a class="nav" data-s="s7"><span class="ico">🧭</span>招标文件深度分析工作台</a>
+  <a class="nav" data-s="s11"><span class="ico">🌳</span>遴选应标能力树（根/干/枝/预案）</a>
   <a class="nav" data-s="s2"><span class="ico">🇨🇳</span>全国共同点</a>
   <a class="nav" data-s="s3"><span class="ico">🔍</span>全国差异点</a>
   <a class="nav" data-s="s4"><span class="ico">📈</span>评分规则趋势报告</a>
@@ -747,6 +748,131 @@ header.topbar h1{font-size:15px;letter-spacing:.5px}}
   </div>
   <p class="footer">遴选应标支持库 · 某产险农险业务内部工具 ｜ 内容基准日 2026-09-18 ｜ 本站为静态演示站，前端口令非加密级防护，请勿存放涉密文件</p>
 </section>
+
+<!-- ============ S11 遴选应标能力树 ============ -->
+<section class="sec" id="s11">
+  <h2 class="sec-title">遴选应标能力树（分析 · 制作 · 审核 · 唯一总架构）</h2>
+  <p class="sec-desc">本树是专家包「遴选应标」能力的<strong>唯一总架构</strong>，结构为 <b>树根（通用基础）→ 主干（遴选专项）→ 枝干（三类任务）→ 特别情况预案（触发即动作）</b>，每节点是可迁移认知单元（原则＋操作法＋触发）。已同步专家包能力树最新生长至 <b>预案 X（2026-10-28）</b>；本网站「招标文件深度分析工作台」即树·枝1（分析）的机检实现。内容已按本站规范脱敏（某财险／某农互／某执行标准）。</p>
+  <style>
+    .ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;margin-top:8px}
+    .ct-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fafbfe}
+    .ct-card .ct-k{font-weight:700;color:#0b3d91;font-size:13px;margin-bottom:3px}
+    .ct-card .ct-t{font-weight:600;font-size:13px;margin-bottom:4px}
+    .ct-card .ct-p{font-size:12px;color:#a03a3a;line-height:1.6;margin-bottom:3px}
+    .ct-card .ct-m{font-size:12px;color:#3a3a3a;line-height:1.65}
+    .ct-plan{border:1px solid var(--line);border-radius:8px;margin-bottom:7px;overflow:hidden;background:#fff}
+    .ct-plan>summary{cursor:pointer;padding:8px 12px;background:#f6f8fd;font-weight:600;font-size:13px;list-style:none}
+    .ct-plan>summary::-webkit-details-marker{display:none}
+    .ct-plan .ct-code{display:inline-block;background:#0b3d91;color:#fff;border-radius:5px;padding:1px 7px;font-size:11.5px;margin-right:7px}
+    .ct-badge{font-size:10.5px;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
+    .ct-b-B{background:#e8f0fe;color:#0b3d91}
+    .ct-b-双{background:#fdeede;color:#b26a00}
+    .ct-b-观察{background:#f0ecf8;color:#6a3aa0}
+    .ct-plan .ct-body{padding:8px 12px;font-size:12.5px;line-height:1.7;display:none}
+    .ct-plan[open] .ct-body{display:block}
+    .ct-row{margin-bottom:4px}
+    .ct-row b{color:#0b3d91}
+  </style>
+  <div class="card">
+    <h3>🌱 树根七条（通用基础 · 适用于所有产出任务）</h3>
+    <div id="ctRoots" class="ct-grid"></div>
+  </div>
+  <div class="card">
+    <h3>🌿 主干四条（农险遴选专项方法论）</h3>
+    <div id="ctTrunks" class="ct-grid"></div>
+  </div>
+  <div class="card">
+    <h3>🌳 枝干三条（三类任务工作流）</h3>
+    <div id="ctBranches" class="ct-grid"></div>
+  </div>
+  <div class="card">
+    <h3>⚡ 特别情况预案库（触发即动作 · A–X）</h3>
+    <p style="font-size:12.5px;color:var(--gray);margin-bottom:8px">点击任一条目展开「识别信号／立即动作／来源」。来源标注：<b>B路</b>=用户经验分享与明确要求；<b>双来源</b>=B路用户批注与A路（书本／互联网学评标与标书制作）融合升格；<b>观察期</b>=A路学到、待实战验证转正。点击下方按钮可按来源筛选。</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+      <button class="btn ct-flt" data-f="all" style="background:#0b3d91;color:#fff">全部</button>
+      <button class="btn ct-flt" data-f="B">B路·用户</button>
+      <button class="btn ct-flt" data-f="双">双来源</button>
+      <button class="btn ct-flt" data-f="观察">观察期</button>
+    </div>
+    <div id="ctPlanList"></div>
+  </div>
+</section>
+<script>
+var CT={
+ roots:[
+  {k:'根1',t:'视角先于动作',p:'视角错则全错：审核=评委视角，制作=中标视角，分析=决策视角，汇报=受众视角',m:'动手前先答三问——这是分析/制作/审核哪类？为谁产出？我的立场是什么？'},
+  {k:'根2',t:'需求→响应矩阵',p:'没有基准不得出"完整/合格"结论',m:'从约束源（公告/规范/评分细则）抽全要求→建矩阵(要求→我方响应→状态)→逐项判定；要求抽不全=隐性丢分'},
+  {k:'根3',t:'三层判定（有没有→对不对→好不好）',p:'完全响应才得分，充分响应才得高分；只停"有没有"是校对不是审核',m:'完全响应(得分线)→充分响应(高分线)→对不对→好不好，每审每写走到哪层'},
+  {k:'根4',t:'主体一致性',p:'署名/权属/签发主体须一致且落正确层级；主体错配=证据链断裂=隐性零分',m:'每份附证比对三主体：权属主体 vs 投标/报告主体 vs 澄清允许的上级主体'},
+  {k:'根5',t:'证据链闭环',p:'看一页判一页是根因级失误',m:'同一主体多份材料先按人名/主体聚合再下结论；下红/橙结论前必反证'},
+  {k:'根6',t:'诚实交底',p:'知之为知之，不编造不模糊不推诿',m:'图片层必OCR+关键图目检；拿不准给确定结论或明说"无法判定+原因"；不编数字'},
+  {k:'根7',t:'换版/变更锚点重建',p:'文件更新/换版后旧引用失效，不得沿用',m:'换版审核先重跑聚合+目检重建锚点，失效引用一律删'}
+ ],
+ trunks:[
+  {k:'干1',t:'反向抽基准',m:'从公告+答疑抽三部分（资格/商务/技术）及每评分项全部采分点；采分点=关键内容/必备要件/审查阈值/一票否决情形，≠分值'},
+  {k:'干2',t:'编制顺序合规',m:'章节顺序须严格按公告；顺序错乱=评委无从对应=隐性丢分'},
+  {k:'干3',t:'完全响应→充分响应递进',m:'每要求/采分点按根3四层上探；制作不仅"有"，要"充分、差异化拔高、佐证可溯源"'},
+  {k:'干4',t:'关联性与逻辑性',m:'各章节须与公告明确关联；全篇自成逻辑体系（前后口径一致、无矛盾、递进合理、互相印证）'}
+ ],
+ branches:[
+  {k:'枝1',t:'分析遴选公告（决策视角）',m:'读公告+答疑抽全要求与采分点→建需求响应矩阵→六维透视每采分点(主体/时间/文件/算法/数据/可改性)→输出资格正反清单+废标红线表+评分项逐项分析'},
+  {k:'枝2',t:'制作应标文件（中标视角）',m:'载矩阵基准→按公告顺序排骨架，每采分点作关键标题→标题下内容与采分点严格对应→逐点填内容(完全→充分)→全篇关联性自检'},
+  {k:'枝3',t:'审核应标文件（评委视角）',m:'先有公告基准→建需求响应对照矩阵→七层递进判定→批注纪律(锚定句段/只写问题+建议)→产出批注版+清单版+总报告'}
+ ],
+ plans:[
+  {c:'A',t:'劳动合同/协议多页关联',cat:'B',s:'出现多份同名合同/续订书，或要判"缺失/晚于时限/不合规"',a:'先按人名聚合跨页材料，提取日期链确认连续性再下结论；严禁看一页判一页',src:'B路·用户批注（续签合同误判案）'},
+  {c:'B',t:'主体错配（上级材料替本级）',cat:'B',s:'附证署名主体是分公司/中支/省公司而非投标主体',a:'核对澄清是否允许上级主体出具+证明配备到本级；不允许则标红，需补本级证明',src:'B路·用户批注'},
+  {c:'C',t:'红线批注前置反证',cat:'B',s:'要下红/橙批注（缺失/晚于时限/不合规/废标）',a:'先聚合+反证确认无反证才下；否则降级或删除',src:'B路'},
+  {c:'D',t:'换版锚点重建',cat:'B',s:'文件版本更新/附件换血/页码重排',a:'重跑聚合+目检重建锚点，旧引用一律删再判沿用',src:'B路'},
+  {c:'E',t:'图片型PDF必须目检',cat:'B',s:'扫描件/图片型PDF/证明材料照片',a:'全量OCR+关键图放大目检；公章扫描件常漏识，不得仅凭OCR文字层下定论',src:'B路'},
+  {c:'F',t:'主体区分（某财险 vs 某农互）',cat:'B',s:'材料出现"某农业相互保险公司/某农互"',a:'严禁混入某财险应标文件；二者主体独立，混用=真实性一票否决风险',src:'B路'},
+  {c:'G',t:'审核须给废标明确结论+逐字逐句完全响应',cat:'B',s:'做审核准备给模糊结论（"文本层无触发/未见异常"）',a:'废标/否决项拉全条款逐条给明确结论；评分项逐字逐句核对完全响应(含注/须提供子要件)',src:'B路'},
+  {c:'H',t:'数据真实性主动查证（不甩给用户）',cat:'B',s:'交付物需填真实数据且缺失/存疑',a:'主动查证准确真实数据填入；查不到空着不写，绝不编数',src:'B路'},
+  {c:'I',t:'概念/定位校准',cat:'B',s:'用户对某概念/定位/命名纠正（"不是X是Y"）',a:'立即采用校准后概念，重命名相关文件/章节/结论并复查方向',src:'B路'},
+  {c:'J',t:'任务定向校准',cat:'B',s:'用户指出"你弄错了/我要的是A不是B"',a:'停止错误方向修补，先对齐任务真实范围/对象再整体重做',src:'B路'},
+  {c:'K',t:'证据图"期/主体/章/性质"四对应目检',cat:'双',s:'正文引用证据图或给出自陈值（充足率/结案率/期限）',a:'调原件核四对应(期/主体/章/性质)，自陈值一律与图证原件交叉验',src:'B路+A路(ccgp钢印模糊案例)双来源'},
+  {c:'L',t:'资格文件"放对没"双核查',cat:'双',s:'资格章节出现各类资质/授权/执照/社保/名单/车辆证明/承诺函',a:'查每类是否对的那一份那一层级（申请人层级/执照名一字不差/省市级不混/社保含机构名+月份/车辆所有人中支须附调拨单）',src:'B路+A路(农险专项实务)双来源'},
+  {c:'M',t:'评分项"子要件逐点覆盖"结构核查',cat:'B',s:'评分项"注/须提供/须分为X方面"',a:'拆子要件清单建覆盖矩阵，每个子要件作关键标题展示',src:'B路·德州48批注'},
+  {c:'N',t:'证据细节"可读可对应"必查',cat:'双',s:'证据图含月份/机构名/所有人/编号/关键数据字段',a:'放大目检确认清晰可读、与叙述一致、关键数据图证标注可见',src:'B路+A路(评标导航表)双来源'},
+  {c:'O',t:'全篇口径/章节关联一致性',cat:'B',s:'跨章节同类数据/主体/口径',a:'按干4做关联性自检：前后口径一致、数字合计相符、主观不与客观矛盾',src:'B路'},
+  {c:'P',t:'目录/格式/错别字/体例目检',cat:'B',s:'生成/审核任何一轮',a:'体例专检：目录不重复+页码更新/错别字/单位完整/机构全称/抬头不重复',src:'B路'},
+  {c:'Q',t:'承诺函/要件齐全+篇幅顺序合规',cat:'B',s:'评分项"须提供承诺函/须提供X证明/报告不超过X字/列放最后"',a:'要件清单逐条核齐全，篇幅与顺序合规，授权有效期核前附表天数',src:'B路'},
+  {c:'R',t:'投前自我评分演练排查扣分项（观察期）',cat:'观察',s:'A路引入(cgpnews《标书如何拿高分》)',a:'定稿前做一轮自我评分：客观分核满分、主观分按最低判准预估、列扣分项补齐',src:'A路·观察期'},
+  {c:'S',t:'评分响应对照表前置（观察期）',cat:'观察',s:'A路引入(头条《标书制作要点》)',a:'目录后正文前插"评分项→页码→得分自评"对照表，替评委指路',src:'A路·观察期'},
+  {c:'T',t:'应标写作"呼应实质化"铁律',cat:'B',s:'正文出现"与响应文件『XX章节』"呼应句',a:'删指向词，直接写呼应实质内容（如"与卫星遥感…"而非"与响应文件章节"）',src:'B路'},
+  {c:'U',t:'评审视角"子要件×图证一致"双轴核查',cat:'B',s:'审核只列格式/错别字，未逐评分项核子要件与图证',a:'建子要件清单逐点核覆盖+证据图目检+给明确结论(达标/缺项/0分风险/可能废标)',src:'B路'},
+  {c:'V',t:'信息真实准确铁律（最高优先级）',cat:'B',s:'写/审出现具体制度名/文件名/时效/数据/属地/机构全称/条款引用',a:'四不写(不虚构/不混标承诺与办法/不改写属地/不凭记忆压缩条款)；生成前强制"真实三问"门禁',src:'B路'},
+  {c:'W',t:'评审专家视角"采分点三维评价"',cat:'B',s:'审核只泛泛找格式错字，不按评分项拆解采分点/不站评委视角/不显式给查分结论',a:'四段式：评委视角/采分点拆分/三维评价(准确性·全面性·层次性)/明示查分结论+风险预警',src:'B路·2026-10-22'},
+  {c:'X',t:'技术部分"论点+论据"结构',cat:'B',s:'某评分项标题下直接进入"附：…"或纯材料堆砌，缺论点概述',a:'先论点(我司该项情况/结论)后论据(证明/描述)；审核缺论点即提示补',src:'B路·2026-10-28'}
+ ]
+};
+function renderCapTree(){
+  try{
+    var roots=document.getElementById('ctRoots'),trunks=document.getElementById('ctTrunks'),branches=document.getElementById('ctBranches'),plans=document.getElementById('ctPlanList');
+    if(!roots)return;
+    function card(o){return '<div class="ct-card"><div class="ct-k">'+o.k+'</div><div class="ct-t">'+o.t+'</div>'+(o.p?'<div class="ct-p">'+o.p+'</div>':'')+'<div class="ct-m">'+o.m+'</div></div>';}
+    roots.innerHTML=CT.roots.map(card).join('');
+    trunks.innerHTML=CT.trunks.map(card).join('');
+    branches.innerHTML=CT.branches.map(card).join('');
+    var list=CT.plans.map(function(p){
+      var bcls={'B':'ct-b-B','双':'ct-b-双','观察':'ct-b-观察'}[p.cat]||'ct-b-B';
+      var blbl={'B':'B路','双':'双来源','观察':'观察期'}[p.cat]||'B路';
+      return '<details class="ct-plan" data-cat="'+p.cat+'"><summary><span class="ct-code">预案'+p.c+'</span>'+p.t+'<span class="ct-badge '+bcls+'">'+blbl+'</span></summary><div class="ct-body"><div class="ct-row"><b>识别信号：</b>'+p.s+'</div><div class="ct-row"><b>立即动作：</b>'+p.a+'</div><div class="ct-row"><b>来源：</b>'+p.src+'</div></div></details>';
+    }).join('');
+    plans.innerHTML=list;
+    var btns=document.querySelectorAll('.ct-flt');
+    btns.forEach(function(b){b.onclick=function(){
+      var f=b.getAttribute('data-f');
+      btns.forEach(function(x){x.style.background='';x.style.color='';});
+      b.style.background='#0b3d91';b.style.color='#fff';
+      document.querySelectorAll('#ctPlanList .ct-plan').forEach(function(d){
+        d.style.display=(f==='all'||d.getAttribute('data-cat')===f)?'':'none';
+      });
+    };});
+  }catch(e){if(window.console)console.error('renderCapTree',e);}
+}
+if(document.readyState!=='loading')renderCapTree();else document.addEventListener('DOMContentLoaded',renderCapTree);
+</script>
 
 </main>
 </div>
@@ -4651,7 +4777,7 @@ function daBuildMd(R){
   L.push('> 项目：'+(R.name||'农险遴选招标文件'));
   L.push('> 基准日期：'+daToday());
   L.push('> 分析依据：'+fnames);
-  L.push('> 生成工具：agri-bid-audit · 某产险农险遴选本地工具 v2.0（深度分析 L1–L7）[能力树v15·采分点拆分纯净度闸]\n');
+  L.push('> 生成工具：agri-bid-audit · 某产险农险遴选本地工具 v2.0（深度分析 L1–L7）[能力树v16·预案W三维评价·预案X论点论据]\n');
   /* 一、资格文件清单（公告原文逐项对照）—— 与本地工具 framework.renderFramework 同构 */
   L.push('## 一、资格文件清单（公告原文逐项对照）');
   L.push('> 下表逐条列出本期招标公告「申请人资格要求」章节的**资格条件原文**（区间法整条收录，不截断），每条即一项强制资格门槛，须逐条响应。');
@@ -4747,6 +4873,7 @@ function daBuildMd(R){
   }
   L.push('## 四、维度与权重·逐维度满分建议（合并表）· 共 '+(R.dims?R.dims.filter(function(d){return !d.group;}).length:0)+' 个采分项');
   L.push('> 下表逐行对应评分细则中的一个**采分项（含具体要求原文）**：列出分值、遴选公告评分项要求原文、采分点（逐条列出不省略），并给出「提供什么证明材料 / 什么方向的描述可以拿到更高的分甚至满分」的 ★ 高分建议。一级指标行（如服务能力 30 分）聚合其下分项，分项行逐条给佐证。');
+  L.push('> 本环节遵循能力树·预案W——采分点须按「准确性·全面性·层次性」三维评价；制作时应标文件技术部分须先论点(我司该项情况/结论)后论据(证明/描述)，即能力树·预案X 结构。');
   L.push('| 采分项 | 分值 | 遴选公告评分项要求原文 | 采分点（逐条列出，不省略） | ★ 高分建议 |');
   L.push('|--------|------|----------------------|--------------------------|-----------|');
   (R.advice||[]).forEach(function(a){
@@ -4800,6 +4927,7 @@ function daBuildMd(R){
   L.push('');
   /* 八、应标合理化建议书（L7）· 模板句 + 提供方映射（本地正本句式） */
   L.push('## 八、应标合理化建议书（L7）');
+  L.push('> 结构铁律（能力树·预案X）：技术部分每个评分项标题下首段须为「论点型」话语（我司该项情况/结论），其后放证明材料与描述（论据）——先论点后论据，评委才能快速对应采分点。');
   L.push('| 评分维度 | 分值 | 建议动作 | 提供方 | 风险 |');
   L.push('|----------|------|----------|--------|------|');
   rows.forEach(function(r){
