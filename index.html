@@ -5140,8 +5140,6 @@ async function daOnFile(inp){
         var r=daXmlBody(xml,styleNames);
         item={name:f.name,text:r.text,tables:r.tables,chapters:r.chapters};
       }else if(/\.pdf$/i.test(f.name)){
-        item={name:f.name,text:r.text,tables:r.tables,chapters:r.chapters};
-      }else if(/\.pdf$/i.test(f.name)){
         var buf2=await f.arrayBuffer();
         item=await daPdfText(buf2,f.name);
       }else if(/^image\//.test(f.type||'')){
